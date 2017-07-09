@@ -377,15 +377,18 @@ performanceTestJob.with {
             targetDirectory('${JMETER_TESTDIR}')
         }
         shell('''export SERVICE_NAME="$(echo ${PROJECT_NAME} | tr '/' '_')_${ENVIRONMENT_NAME}"
-            |if [ -e ../apache-jmeter-2.13.tgz ]; then
-            |	cp ../apache-jmeter-2.13.tgz $JMETER_TESTDIR
+            | export JMETER_REPO="https://archive.apache.org/dist/jmeter/binaries/"
+            | export JMETER_VERSION="apache-jmeter-2.13"
+	    | export JMETER_TGZ="$JMETER_VERSION}.tgz"
+            |if [ -e ../${JMETER_TGZ} ]; then
+            |	cp ../${JMETER_TGZ} $JMETER_TESTDIR
             |else
-            |	wget http://www.apache.org/dist/jmeter/binaries/apache-jmeter-2.13.tgz
-            |    cp apache-jmeter-2.13.tgz ../
-            |    mv apache-jmeter-2.13.tgz $JMETER_TESTDIR
+            |	wget ${JMETER_REPO}/${JMETER_TGZ}
+            |    cp ${JMETER_TGZ} ../
+            |    mv ${JMETER_TGZ} $JMETER_TESTDIR
             |fi
             |cd $JMETER_TESTDIR
-            |tar -xf apache-jmeter-2.13.tgz
+            |tar -xf ${JMETER_TGZ}
             |echo 'Changing user defined parameters for jmx file'
             |sed -i 's/PETCLINIC_HOST_VALUE/'"${SERVICE_NAME}"'/g' src/test/jmeter/petclinic_test_plan.jmx
             |sed -i 's/PETCLINIC_PORT_VALUE/8080/g' src/test/jmeter/petclinic_test_plan.jmx
@@ -395,7 +398,7 @@ performanceTestJob.with {
         )
         ant {
             props('testpath': '$WORKSPACE/$JMETER_TESTDIR/src/test/jmeter', 'test': 'petclinic_test_plan')
-            buildFile('${WORKSPACE}/$JMETER_TESTDIR/apache-jmeter-2.13/extras/build.xml')
+            buildFile('${WORKSPACE}/$JMETER_TESTDIR/${JMETER_VERSION}/extras/build.xml')
             antInstallation('ADOP Ant')
         }
         shell('''mv $JMETER_TESTDIR/src/test/gatling/* .
